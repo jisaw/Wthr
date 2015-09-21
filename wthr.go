@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
+	. "github.com/jisaw/goUtils"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -45,6 +46,7 @@ type WeatherJSON struct {
 	Cod  int
 }
 
+// Open Weather API endpoint
 const queryURL = "http://api.openweathermap.org/data/2.5/weather?units=imperial&q="
 
 func retrieveWeather(area string) {
@@ -56,7 +58,7 @@ func retrieveWeather(area string) {
 	json.Unmarshal(body, &data)
 	fmt.Printf("City: %s | ", data.Name)
 	fmt.Printf("Temp: %-3.2ff | ", data.Main.Temp)
-	fmt.Printf("Description: %s | ", data.Weather[0].Description)
+	fmt.Printf("Description: %s", Capitalize(data.Weather[0].Description))
 }
 
 func main() {
@@ -68,6 +70,8 @@ func main() {
 		//println("This is working")
 		if len(c.Args()) >= 1 {
 			retrieveWeather(c.Args()[0])
+			err := ioutil.WriteFile("/tmp/config.txt", []byte(c.Args()[0]), 0644)
+			CheckErr(err)
 		} else {
 			println("Please pass in a city name or zip code!")
 		}
