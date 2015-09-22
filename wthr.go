@@ -57,8 +57,11 @@ func retrieveWeather(area string) {
 	body, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(body, &data)
 	fmt.Printf("City: %s | ", data.Name)
-	fmt.Printf("Temp: %-3.2ff | ", data.Main.Temp)
-	fmt.Printf("Description: %s", Capitalize(data.Weather[0].Description))
+	fmt.Printf("Temp: %.ff | ", data.Main.Temp)
+    fmt.Printf("High: %.ff | ", data.Main.Temp_max)
+    fmt.Printf("Low: %.ff | ", data.Main.Temp_min)
+    fmt.Printf("Wind Speed: %.fmph | ", data.Wind.Speed)
+    fmt.Printf("Description: %s\n", Capitalize(data.Weather[0].Description))
 }
 
 func main() {
@@ -73,9 +76,17 @@ func main() {
 			err := ioutil.WriteFile("/tmp/config.txt", []byte(c.Args()[0]), 0644)
 			CheckErr(err)
 		} else {
+            fileCity, err := ioutil.ReadFile("/tmp/config.txt")
+            CheckErr(err)
+            city := string(fileCity)
+            if len(city) >= 3{
+                retrieveWeather(city)
+                err := ioutil.WriteFile("/tmp/config.txt", []byte(city), 0644)
+                CheckErr(err)
+            } else {
 			println("Please pass in a city name or zip code!")
-		}
-	}
-
+		    }
+	    }
+    }
 	app.Run(os.Args)
 }
