@@ -96,13 +96,14 @@ type FiveDayJSON struct {
 type Config struct {
 	Country string
 	City    string
+	Unit    string
 }
 
 // Open Weather API Endpoint
-const weatherQueryURL = "http://api.openweathermap.org/data/2.5/weather?units=imperial&mode=json&q="
+const weatherQueryURL = "http://api.openweathermap.org/data/2.5/weather?mode=json&"
 
 // Open Weather API 5 Day Forecast Endpoint
-const fiveDayQueryURL = "http://api.openweathermap.org/data/2.5/forecast?mode=json&units=imperial&q="
+const fiveDayQueryURL = "http://api.openweathermap.org/data/2.5/forecast?mode=json&"
 
 // Writes config to json file and returns Config struct
 func writeConfig(c Config) Config {
@@ -124,7 +125,7 @@ func readConfig() Config {
 
 // Returns a string to be amended to the queryWeatherURL
 func (c *Config) urlAmendment() string {
-	return string(c.City + "," + c.Country)
+	return string("&q=" + c.City + "," + c.Country + "&unit=" + c.Unit)
 }
 
 // Retrieves, parses, and prints current weather
@@ -136,6 +137,10 @@ func retrieveWeather(c Config) {
 
 	body, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(body, &data)
+	printCurrentWeather(data)
+}
+
+func printCurrentWeather(data WeatherJSON) {
 	fmt.Printf("City: %s | ", data.Name)
 	fmt.Printf("Temp: %.ff | ", data.Main.Temp)
 	fmt.Printf("High: %.ff | ", data.Main.Temp_max)
@@ -145,7 +150,18 @@ func retrieveWeather(c Config) {
 }
 
 func retrieveFiveDay(c Config) {
+	data := FiveDayJSON{}
+	r, _ := http.Get(fiveDayQueryURL + c.urlAmendment())
+	defer r.Body.Close()
 
+	body, _ := ioutil.ReadAll(r.Body)
+	json.Unmarshal(body, &data)
+	printFiveDayWeather(data)
+}
+
+func printFiveDayWeather(data FiveDayJSON) {
+	//TODO Print 5 day forecast
+	fmt.Printf("WORKING TEST WORKING")
 }
 
 func main() {
@@ -161,10 +177,15 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "country, c",
-			Value: "US",
+			Value: "us",
 			Usage: "Sets the country to use",
 		},
-		cli.Bool{
+		cli.StringFlag{
+			Name:  "unit, u",
+			Value: "imperial",
+			Usage: "Sets the unit of measurement",
+		},
+		cli.BoolFlag{
 			Name:  "5day, 5",
 			Usage: "returns a 5 day forecast",
 		},
@@ -178,25 +199,20 @@ func main() {
 		if len(c.String("country")) > 1 {
 			config.Country = c.String("country")
 		}
+		if len(c.String("unit")) > 1 {
+			config.Unit = c.String("unit")
+		}
+
+		writeConfig(&config)
+
+		if c.String("5day") {
+			retrieveFiveDay(config)
+		} else {
+			retrieveWeather(config)
+		}
 		//
 		// TODO REWORK LOGIC
 		//
-		if len(c.Args()) >= 1 {
-			retrieveWeather(c.Args()[0])
-			err := ioutil.WriteFile("/tmp/config.txt", []byte(c.Args()[0]), 0644)
-			CheckErr(err)
-		} else {
-			fileCity, err := ioutil.ReadFile("/tmp/config.txt")
-			CheckErr(err)
-			city := string(fileCity)
-			if len(city) >= 3 {
-				retrieveWeather(city)
-				err := ioutil.WriteFile("/tmp/config.txt", []byte(city), 0644)
-				CheckErr(err)
-			} else {
-				println("Please pass in a city name or zip code!")
-			}
-		}
 	}
 	app.Run(os.Args)
 }
