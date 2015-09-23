@@ -109,17 +109,19 @@ const fiveDayQueryURL = "http://api.openweathermap.org/data/2.5/forecast?mode=js
 func writeConfig(c Config) Config {
 	result, err := json.Marshal(c)
 	CheckErr(err)
-	err := ioutil.WriteFile("/tmp/config.json", []byte(string(c)), 0644)
-	CheckErr(err)
+	err2 := ioutil.WriteFile("/tmp/config.json", result, 0644)
+	CheckErr(err2)
 	return c
 }
 
 // Reads config from json file and returns Config struct
 func readConfig() Config {
 	file, err := ioutil.ReadFile("/tmp/config.json")
-	CheckErr(err)
+	if err != nil {
+		return Config{}
+	}
 	config := Config{}
-	json.Unmarhsal(file, &config)
+	json.Unmarshal(file, &config)
 	return config
 }
 
@@ -203,9 +205,9 @@ func main() {
 			config.Unit = c.String("unit")
 		}
 
-		writeConfig(&config)
+		writeConfig(config)
 
-		if c.String("5day") {
+		if c.Bool("5day") {
 			retrieveFiveDay(config)
 		} else {
 			retrieveWeather(config)
