@@ -127,26 +127,33 @@ func readConfig() Config {
 
 // Returns a string to be amended to the queryWeatherURL
 func (c *Config) urlAmendment() string {
-	return string("&q=" + c.City + "," + c.Country + "&unit=" + c.Unit)
+	return string("q=" + c.City + "," + c.Country + "&units=" + c.Unit)
 }
 
 // Retrieves, parses, and prints current weather
 func retrieveWeather(c Config) {
 	// TODO rework with c Config
+	var unit string
+	if c.Unit == "imperial" {
+		unit = "f"
+	}
+	if c.Unit == "metric" {
+		unit = "c"
+	}
 	data := WeatherJSON{}
 	r, _ := http.Get(weatherQueryURL + c.urlAmendment())
 	defer r.Body.Close()
 
 	body, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(body, &data)
-	printCurrentWeather(data)
+	printCurrentWeather(data, unit)
 }
 
-func printCurrentWeather(data WeatherJSON) {
+func printCurrentWeather(data WeatherJSON, unit string) {
 	fmt.Printf("City: %s | ", data.Name)
-	fmt.Printf("Temp: %.ff | ", data.Main.Temp)
-	fmt.Printf("High: %.ff | ", data.Main.Temp_max)
-	fmt.Printf("Low: %.ff | ", data.Main.Temp_min)
+	fmt.Printf("Temp: %.f%s | ", data.Main.Temp, unit)
+	fmt.Printf("High: %.f%s | ", data.Main.Temp_max, unit)
+	fmt.Printf("Low: %.f%s | ", data.Main.Temp_min, unit)
 	fmt.Printf("Wind Speed: %.fmph | ", data.Wind.Speed)
 	fmt.Printf("Description: %s\n", Capitalize(data.Weather[0].Description))
 }
@@ -163,7 +170,7 @@ func retrieveFiveDay(c Config) {
 
 func printFiveDayWeather(data FiveDayJSON) {
 	//TODO Print 5 day forecast
-	fmt.Printf("WORKING TEST WORKING")
+	fmt.Printf("City: %s | ", data.City.Name)
 }
 
 func main() {
@@ -212,9 +219,6 @@ func main() {
 		} else {
 			retrieveWeather(config)
 		}
-		//
-		// TODO REWORK LOGIC
-		//
 	}
 	app.Run(os.Args)
 }
