@@ -100,10 +100,10 @@ type Config struct {
 }
 
 // Open Weather API Endpoint
-const weatherQueryURL = "http://api.openweathermap.org/data/2.5/weather?mode=json&"
+const weatherQueryURL = "http://api.openweathermap.org/data/2.5/weather?APPID=3580f8d7026f91a3696dca86d37bf3df&mode=json&"
 
 // Open Weather API 5 Day Forecast Endpoint
-const fiveDayQueryURL = "http://api.openweathermap.org/data/2.5/forecast?mode=json&"
+const fiveDayQueryURL = "http://api.openweathermap.org/data/2.5/forecast?APPID=3580f8d7026f91a3696dca86d37bf3df&mode=json&"
 
 // Writes config to json file and returns Config struct
 func writeConfig(c Config) Config {
@@ -132,12 +132,11 @@ func (c *Config) urlAmendment() string {
 
 // Retrieves, parses, and prints current weather
 func retrieveWeather(c Config) {
-	// TODO rework with c Config
 	var unit string
-	if c.Unit == "imperial" {
+	if c.Unit == "imperial" || c.Unit == "f" || c.Unit == "farenheit" || c.Unit == "i" {
 		unit = "f"
 	}
-	if c.Unit == "metric" {
+	if c.Unit == "metric" || c.Unit == "c" || c.Unit == "celsius" || c.Unit == "m" {
 		unit = "c"
 	}
 	data := WeatherJSON{}
